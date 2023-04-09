@@ -1,6 +1,5 @@
 use std::cell::RefCell;
 use std::fmt::Display;
-use std::ops::Deref;
 use std::rc::Rc;
 
 #[derive(Default, PartialEq)]
@@ -14,6 +13,7 @@ struct LL<T: Display + Default + PartialEq> {
     head: Option<Rc<RefCell<Node<T>>>>,
     tail: Option<Rc<RefCell<Node<T>>>>,
 }
+
 
 impl<T: Display + Default + PartialEq> LL<T> {
     fn new() -> LL<T> {
@@ -114,7 +114,7 @@ impl<T: Display + Default + PartialEq> LL<T> {
         let node_ref = Rc::new(RefCell::new(Node {
             value: item,
             prev: Some(current_node_unwrapped.clone()),
-            next: current_node_unwrapped.borrow().next.clone()
+            next: current_node_unwrapped.borrow().next.clone(),
         }));
         if let Some(n) = current_node_unwrapped.borrow().next.clone() {
             n.borrow_mut().prev = Some(node_ref.clone());
@@ -122,7 +122,17 @@ impl<T: Display + Default + PartialEq> LL<T> {
         current_node_unwrapped.borrow_mut().next = Some(node_ref.clone());
         Some(node_ref)
     }
+    fn iter(&self) -> LLIterator<T> {
+        LLIterator {
+            current_node: self.head.clone()
+        }
+    }
 }
+
+struct LLIterator<'a, T: Display + Default + PartialEq> where &'a T: Default {
+    current_node: Option<Rc<RefCell<Node<&'a T>>>>,
+}
+
 
 
 fn main() {
@@ -136,8 +146,12 @@ fn main() {
     println!("{}", n.pop_back().unwrap());
     println!("{}", n.pop_back().unwrap());
 
+
     n.replace(1, 9999);
     n.insert(1, 2222);
     println!("whats next: ");
     n.print();
+    n.iter().for_each(|x|{
+        println!("{}", x);
+    })
 }
